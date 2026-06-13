@@ -1,0 +1,29 @@
+# Runtime data
+/tmp/kickbacks_*
+*.jsonl
+
+# Secrets
+.env
+.env.*
+*.key
+auth.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (from old JS proxy)
+node_modules/
