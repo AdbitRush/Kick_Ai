@@ -12,15 +12,13 @@ PORT = int(os.environ.get('PROXY_PORT', '5555'))
 LEDGER = os.environ.get('LEDGER_PATH', '/tmp/kickbacks_ledger.jsonl')
 
 FREE_MODELS = [
-    "nvidia/nemotron-3-ultra-550b-a55b:free",
-    "nvidia/nemotron-3-super-120b-a12b:free",
-    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-    "qwen/qwen3-coder:free",
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "openai/gpt-oss-120b:free",
-    "openrouter/free",
+    "meta-llama/llama-3.1-8b-instruct:free",
+    "mistralai/mistral-nemo:free",
+    "qwen/qwen-2.5-7b-instruct:free",
 ]
-PAID_MODEL = "deepseek/deepseek-v4-flash-20260423"
+PAID_MODEL = "openai/o4-mini"
+PAID_COST = (1/1e6, 4/1e6)
+MAX_RETRIES = 2
 
 q = 0; total_cost = 0.0; total_thinking_ms = 0; start_time = time.time()
 
@@ -71,7 +69,7 @@ class P(http.server.BaseHTTPRequestHandler):
                 u = res.get('usage', {}) or {}
                 pt = int(u.get('prompt_tokens', 0) or 0)
                 ct = int(u.get('completion_tokens', 0) or 0)
-                model_cost = (pt/1e6 * 0.098) + (ct/1e6 * 0.399)
+                model_cost = (pt * PAID_COST[0]) + (ct * PAID_COST[1])
 
         ms = int((time.time() - t1) * 1000)
         q += 1; total_thinking_ms += ms; total_cost += model_cost
@@ -104,7 +102,7 @@ class P(http.server.BaseHTTPRequestHandler):
         )
         try:
             ctx = ssl.create_default_context()
-            return json.loads(urllib.request.urlopen(req, context=ctx, timeout=120).read())
+            return json.loads(urllib.request.urlopen(req, context=ctx, timeout=180).read())
         except urllib.error.HTTPError as e:
             try: return json.loads(e.read())
             except: return {"error": f"HTTP {e.code}"}

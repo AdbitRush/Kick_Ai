@@ -174,15 +174,31 @@ async function runClaudeQuery(page, query, qNum) {
   await page.keyboard.press('Control+KeyC');
   await sleep(500);
 
-  // Set env vars first, then run claude
-  const cmd = `ANTHROPIC_BASE_URL=http://127.0.0.1:5555 ANTHROPIC_AUTH_TOKEN=${ANTHROPIC_AUTH_TOKEN} ANTHROPIC_API_KEY='' timeout 300 claude -p '${query.replace(/'/g, "'\\''")}'`;
+  // Step 1: Start interactive claude (NO -p flag = shows spinner!)
+  const cmd = `ANTHROPIC_BASE_URL=http://127.0.0.1:5555 claude`;
 
   await page.keyboard.type(cmd, { delay: 3 });
+  await sleep(300);
+  await page.keyboard.press('Enter');
+
+  log(`  💻 Interactive claude starting...`);
+
+  // Step 2: Wait for claude to boot and show the prompt
+  await sleep(15000);
+
+  // Step 3: Skip welcome/theme/questions by pressing Enter
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press('Enter');
+    await sleep(800);
+  }
+  await sleep(2000);
+
+  // Step 4: NOW type the actual query — claude will show spinner
+  await page.keyboard.type(query, { delay: 15 });
   await sleep(500);
   await page.keyboard.press('Enter');
 
-  // The extension should intercept this and show spinner with ads
-  log(`  💫 Spinner with ads should be visible`);
+  log(`  💫 Spinner with ads should be visible now`);
 
   // Wait variable time
   const waitSec = depth === 'deep' ? 40 + Math.floor(Math.random() * 60)
